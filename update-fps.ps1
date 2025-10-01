@@ -1,4 +1,5 @@
 param(
+    [Parameter(Mandatory = $true)][int]$FPSLimit,
     [string]$ConfigPath
 )
 
@@ -26,6 +27,8 @@ if (-not ($filePaths -is [System.Collections.IEnumerable])) {
     exit 1
 }
 
+$replacement = "FPSLimit=$FPSLimit"
+
 foreach ($filePath in $filePaths) {
     if (-not [string]::IsNullOrWhiteSpace($filePath)) {
         if (Test-Path -LiteralPath $filePath) {
@@ -40,7 +43,7 @@ foreach ($filePath in $filePaths) {
             $updatedLines = foreach ($line in $originalLines) {
                 if ($line -match '^\s*FPSLimit=') {
                     $found = $true
-                    'FPSLimit=165'
+                    $replacement
                 } else {
                     $line
                 }
