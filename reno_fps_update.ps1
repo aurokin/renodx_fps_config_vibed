@@ -49,7 +49,8 @@ if ($null -ne $apolloFPS -and $apolloStatus -ne 'TERMINATING') {
     }
 }
 
-$replacement = 'FPSLimit=' + $effectiveFPSLimit.ToString('0.########', $culture)
+$reno_replacement = 'FPSLimit=' + $effectiveFPSLimit.ToString('0.########', $culture)
+$dc_replacement = 'fps_limit=' + $effectiveFPSLimit.ToString('0.########', $culture)
 
 foreach ($filePath in $filePaths) {
     if (-not [string]::IsNullOrWhiteSpace($filePath)) {
@@ -65,7 +66,10 @@ foreach ($filePath in $filePaths) {
             $updatedLines = foreach ($line in $originalLines) {
                 if ($line -match '^\s*FPSLimit=') {
                     $found = $true
-                    $replacement
+                    $reno_replacement
+                } elseif ($line -match '^\s*fps_limit=') {
+                    $found = $true
+                    $dc_replacement
                 } else {
                     $line
                 }
