@@ -1,5 +1,5 @@
 param(
-    [Parameter(Mandatory = $true)][int]$FPSLimit,
+    [Parameter(Mandatory = $true)][double]$FPSLimit,
     [string]$ConfigPath
 )
 
@@ -27,17 +27,19 @@ if (-not ($filePaths -is [System.Collections.IEnumerable])) {
     exit 1
 }
 
-$effectiveFPSLimit = $FPSLimit
+$culture = [System.Globalization.CultureInfo]::InvariantCulture
+$effectiveFPSLimit = [double]$FPSLimit
+
 if ($null -ne $apolloFPS -and $apolloStatus -ne 'TERMINATING') {
     try {
-        $effectiveFPSLimit = [int]$apolloFPS
+        $effectiveFPSLimit = [System.Convert]::ToDouble($apolloFPS, $culture)
     } catch {
-        Write-Warning "apolloFPS value '$apolloFPS' is not a valid integer. Using provided FPSLimit instead."
-        $effectiveFPSLimit = $FPSLimit
+        Write-Warning "apolloFPS value '$apolloFPS' is not a valid number. Using provided FPSLimit instead."
+        $effectiveFPSLimit = [double]$FPSLimit
     }
 }
 
-$replacement = "FPSLimit=$effectiveFPSLimit"
+$replacement = 'FPSLimit=' + $effectiveFPSLimit.ToString('0.########', $culture)
 
 foreach ($filePath in $filePaths) {
     if (-not [string]::IsNullOrWhiteSpace($filePath)) {
