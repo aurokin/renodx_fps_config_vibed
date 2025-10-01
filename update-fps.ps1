@@ -27,7 +27,17 @@ if (-not ($filePaths -is [System.Collections.IEnumerable])) {
     exit 1
 }
 
-$replacement = "FPSLimit=$FPSLimit"
+$effectiveFPSLimit = $FPSLimit
+if ($null -ne $apolloFPS -and $apolloStatus -ne 'TERMINATING') {
+    try {
+        $effectiveFPSLimit = [int]$apolloFPS
+    } catch {
+        Write-Warning "apolloFPS value '$apolloFPS' is not a valid integer. Using provided FPSLimit instead."
+        $effectiveFPSLimit = $FPSLimit
+    }
+}
+
+$replacement = "FPSLimit=$effectiveFPSLimit"
 
 foreach ($filePath in $filePaths) {
     if (-not [string]::IsNullOrWhiteSpace($filePath)) {
