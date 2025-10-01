@@ -1,4 +1,4 @@
-# renodx_config
+# renodx_fps_config
 
 This repository contains a PowerShell script that updates the `FPSLimit` setting inside RenoDX-managed `ReShade.ini` files.
 
