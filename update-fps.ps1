@@ -28,6 +28,8 @@ if (-not ($filePaths -is [System.Collections.IEnumerable])) {
 }
 
 $culture = [System.Globalization.CultureInfo]::InvariantCulture
+$apolloFPS = $env:APOLLO_CLIENT_FPS
+$apolloStatus = $env:APOLLO_APP_STATUS
 $effectiveFPSLimit = [double]$FPSLimit
 
 if ($null -ne $apolloFPS -and $apolloStatus -ne 'TERMINATING') {
