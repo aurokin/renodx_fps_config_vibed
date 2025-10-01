@@ -1,26 +1,34 @@
+[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
 param(
-    [Parameter(Mandatory = $true)][double]$FPSLimit,
-    [string]$ConfigPath
+  [Parameter(Mandatory = $true, Position = 0)]
+  [double]$FPSLimit,
+
+  [Parameter(Mandatory = $false, Position = 1)]
+  [string]$ConfigPath
 )
 
-# Resolve the config path relative to the script location when not provided.
-if (-not $ConfigPath) {
-    $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-    $ConfigPath = Join-Path -Path $scriptRoot -ChildPath 'config.json'
-}
-
-if (-not (Test-Path -LiteralPath $ConfigPath)) {
-    Write-Error "Config file not found: $ConfigPath"
-    exit 1
-}
-
 try {
-    $configJson = Get-Content -LiteralPath $ConfigPath -Raw
-    $filePaths = $configJson | ConvertFrom-Json
+  if (-not $PSBoundParameters.ContainsKey('ConfigPath') -or [string]::IsNullOrWhiteSpace($ConfigPath)) {
+    # Resolve default config next to the script location, not the current directory
+    $scriptDir = if ($PSScriptRoot) {
+      $PSScriptRoot
+    } elseif ($PSCommandPath) {
+      Split-Path -Parent $PSCommandPath
+    } else {
+      Split-Path -Parent $MyInvocation.MyCommand.Path
+    }
+    $ConfigPath = Join-Path -Path $scriptDir -ChildPath 'config.json'
+  }
+  if (-not (Test-Path -Path $ConfigPath)) {
+    throw "Config file not found: $ConfigPath"
+    }
 } catch {
-    Write-Error "Failed to parse JSON from $ConfigPath: $_"
+    Write-Error "Can't find config"
     exit 1
 }
+
+$jsonRaw = Get-Content -Path $ConfigPath -Raw
+$filePaths = $jsonRaw | ConvertFrom-Json
 
 if (-not ($filePaths -is [System.Collections.IEnumerable])) {
     Write-Error "Config JSON must be an array of file paths."
@@ -49,7 +57,7 @@ foreach ($filePath in $filePaths) {
             try {
                 $originalLines = Get-Content -LiteralPath $filePath
             } catch {
-                Write-Warning "Failed to read $filePath: $_"
+                Write-Warning "Failed to read $filePath"
                 continue
             }
 
@@ -68,7 +76,7 @@ foreach ($filePath in $filePaths) {
                     Set-Content -LiteralPath $filePath -Value $updatedLines -Encoding utf8
                     Write-Host "Updated FPSLimit in $filePath"
                 } catch {
-                    Write-Warning "Failed to write to $filePath: $_"
+                    Write-Warning "Failed to write to $filePath"
                 }
             } else {
                 Write-Host "No FPSLimit line found in $filePath"
